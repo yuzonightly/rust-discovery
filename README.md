@@ -1,3 +1,3 @@
 # rust-discovery
 
-rust-lang/rustlings exercises hehe.
+Exercises from rust-lang/rustlings. `src` code also from rust-lang/rustlings, but with `a few modifications :)`.
