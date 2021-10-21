@@ -1,24 +1,18 @@
-use argh::FromArgs;
-use console::Emoji;
-use notify::DebouncedEvent;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use regex::Regex;
 use serde::Deserialize;
-use std::env;
-use std::ffi::OsStr;
 use std::fmt::{self, Display, Formatter};
-use std::fs::{self, remove_file, File};
-use std::io::Read;
-use std::io::{self, prelude::*};
-use std::path::Path;
+use std::fs::{self, remove_file};
 use std::path::PathBuf;
-use std::process::Stdio;
 use std::process::{self, Command};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{channel, RecvTimeoutError};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+
+#[macro_use]
+mod ui;
+
+const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
+
+#[inline]
+fn clean() {
+    let _ignored = remove_file(&temp_file());
+}
 
 // See Exercise struct
 #[derive(Deserialize, Copy, Clone, Debug)]
@@ -28,8 +22,6 @@ pub enum Mode {
     Compile,
     // Indicates that the exercise should be compiled as a test harness
     Test,
-    // Indicates that the exercise should be linted with clippy
-    Clippy,
 }
 
 // Deserialize for info.toml (list of all exercises)
@@ -45,20 +37,103 @@ pub struct Exercise {
     pub hint: String,
 }
 
-// List of exercises (Exercise struct)
+// List of exercises ([Exercise])
 #[derive(Deserialize)]
 pub struct ExerciseList {
     pub exercises: Vec<Exercise>,
 }
 
-// fn compile_exercise() {}
+// The output of the 'compilation'
+#[derive(Debug)]
+pub struct ExerciseOutput {
+    pub stdout: String,
+    pub stderr: String,
+}
 
-// fn test_exercise() {}
+// The result of compiling an exercise
+#[derive(Debug)]
+pub struct CompiledExercise<'a> {
+    exercise: &'a Exercise,
+}
 
-// fn clippy_exercise() {}
+impl<'a> CompiledExercise<'a> {
+    // Run the compiled exercise
+    pub fn run(&self) -> Result<ExerciseOutput, ExerciseOutput> {
+        run(self.exercise)
+    }
+}
+
+impl Display for Exercise {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.path.to_str().unwrap())
+    }
+}
+
+// Get a temporary file name that is hopefully unique
+#[inline]
+fn temp_file() -> String {
+    let thread_id: String = format!("{:?}", std::thread::current().id())
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .collect();
+
+    format!("./temp_{}_{}", process::id(), thread_id)
+}
+
+// Compile the exercise
+fn compile_exercise(exercise: &Exercise) -> Result<CompiledExercise, ExerciseOutput> {
+    let cmd = match exercise.mode {
+        Mode::Compile => Command::new("rustc")
+            .args(&[exercise.path.to_str().unwrap(), "-o", &temp_file()])
+            .args(RUSTC_COLOR_ARGS)
+            .output(),
+        Mode::Test => Command::new("rustc")
+            .args(&[
+                "--test",
+                exercise.path.to_str().unwrap(),
+                "-o",
+                &temp_file(),
+            ])
+            .args(RUSTC_COLOR_ARGS)
+            .output(),
+    }
+    .expect("Failed to execute 'compilation'");
+
+    if cmd.status.success() {
+        Ok(CompiledExercise { exercise })
+    } else {
+        clean();
+        Err(ExerciseOutput {
+            stdout: String::from_utf8_lossy(&cmd.stdout).to_string(),
+            stderr: String::from_utf8_lossy(&cmd.stderr).to_string(),
+        })
+    }
+}
+
+fn run(exercise: &Exercise) -> Result<ExerciseOutput, ExerciseOutput> {
+    let arg = match exercise.mode {
+        Mode::Test => "--show-output",
+        Mode::Compile => "",
+    };
+
+    let cmd = Command::new(&temp_file())
+        .arg(arg)
+        .output()
+        .expect("Failed to execute 'run'");
+
+    let output = ExerciseOutput {
+        stdout: String::from_utf8_lossy(&cmd.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&cmd.stderr).to_string(),
+    };
+
+    if cmd.status.success() {
+        Ok(output)
+    } else {
+        Err(output)
+    }
+}
 
 // Returns the Exercise chosen by the user
-#[allow(dead_code)]
 fn find_exercise<'a>(name: &str, exercises: &'a [Exercise]) -> &'a Exercise {
     exercises
         .iter()
@@ -70,13 +145,35 @@ fn find_exercise<'a>(name: &str, exercises: &'a [Exercise]) -> &'a Exercise {
 }
 
 fn main() {
-    let name = "variables"; // arg
-    // let path = Path::new("./exercises");
+    let name = "variables1"; // arg --all(a) --specify(s)
+                             // let path = Path::new("./exercises");
     let toml_str = &fs::read_to_string("info.toml").unwrap();
     let exercises = toml::from_str::<ExerciseList>(toml_str).unwrap().exercises;
     // println!("{:?}", exercises[0]);
 
-    
+    let exercise = find_exercise(name, &exercises);
+
+    let compilation_result = compile_exercise(exercise);
+
+    let compilation = match compilation_result {
+        Ok(compilation_exercise) => Ok(compilation_exercise),
+        Err(output) => {
+            warn!(
+                "Compiling of {} failed! Please try again. Here's the output:",
+                exercise
+            );
+            println!("{}", output.stderr);
+            Err(())
+        }
+    };
+
+    clean();
+
+    // let output = run(compiled_exercise.exercise).unwrap();
+
+    // println!("{:?}", output);
+
+    // clean();
 
     // find_exercise(&name, exercises: &'a [Exercise])
 }
