@@ -110,6 +110,7 @@ fn compile_exercise(exercise: &Exercise) -> Result<CompiledExercise, ExerciseOut
     }
 }
 
+// Run the exercise
 fn run(exercise: &Exercise) -> Result<ExerciseOutput, ExerciseOutput> {
     let arg = match exercise.mode {
         Mode::Test => "--show-output",
@@ -155,25 +156,32 @@ fn main() {
 
     let compilation_result = compile_exercise(exercise);
 
-    let compilation = match compilation_result {
-        Ok(compilation_exercise) => Ok(compilation_exercise),
-        Err(output) => {
-            warn!(
-                "Compiling of {} failed! Please try again. Here's the output:",
-                exercise
-            );
-            println!("{}", output.stderr);
-            Err(())
-        }
-    };
+    let compilation = exercises.iter().for_each(|e| {
+        let compilation_result = compile_exercise(e);
 
+        let compilation = match compilation_result {
+            Ok(compiled_exercise) => {
+                println!("Exercise compiled successfully.");
+                let run_exercise = run(compiled_exercise.exercise);
+                match run_exercise {
+                    Ok(ExerciseOutput) => {
+                        println!("Exercise run successfully.");
+                    },
+                    Err(ExerciseOutput) => {
+                        println!("Exercise did not run successfully.");
+                    }
+                };
+            },
+            Err(output) => {
+                // warn!(
+                //     "Compiling of {} failed! Please try again. Here's the output:",
+                //     exercise
+                // );
+                // println!("{}", output.stderr);
+                println!("Exercise compilation failed.");
+                // Err(())
+            }
+        };
+    });
     clean();
-
-    // let output = run(compiled_exercise.exercise).unwrap();
-
-    // println!("{:?}", output);
-
-    // clean();
-
-    // find_exercise(&name, exercises: &'a [Exercise])
 }

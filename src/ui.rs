@@ -15,6 +15,23 @@ macro_rules! warn {
     }};
 }
 
+macro_rules! runerror {
+    ($fmt:literal, $ex:expr) => {{
+        use console::{style, Emoji};
+        use std::env;
+        let formatstr = format!($fmt, $ex);
+        if env::var("NO_EMOJI").is_ok() {
+            println!("{} {}", style("!").yellow(), style(formatstr).yellow());
+        } else {
+            println!(
+                "{} {}",
+                style(Emoji("⚠️ ", "!")).yellow(),
+                style(formatstr).yellow()
+            );
+        }
+    }};
+}
+
 macro_rules! success {
     ($fmt:literal, $ex:expr) => {{
         use console::{style, Emoji};
