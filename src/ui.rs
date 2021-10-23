@@ -1,4 +1,4 @@
-macro_rules! warn {
+macro_rules! compilation_error {
     ($fmt:literal, $ex:expr) => {{
         use console::{style, Emoji};
         use std::env;
@@ -15,7 +15,7 @@ macro_rules! warn {
     }};
 }
 
-macro_rules! runerror {
+macro_rules! run_error {
     ($fmt:literal, $ex:expr) => {{
         use console::{style, Emoji};
         use std::env;

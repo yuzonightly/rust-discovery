@@ -150,38 +150,37 @@ fn main() {
                              // let path = Path::new("./exercises");
     let toml_str = &fs::read_to_string("info.toml").unwrap();
     let exercises = toml::from_str::<ExerciseList>(toml_str).unwrap().exercises;
-    // println!("{:?}", exercises[0]);
 
-    let exercise = find_exercise(name, &exercises);
+    // let exercise = find_exercise(name, &exercises);
+    // let compilation_result = compile_exercise(exercise);
 
-    let compilation_result = compile_exercise(exercise);
+    exercises.iter().for_each(|exercise| {
+        let compilation_result = compile_exercise(exercise);
 
-    let compilation = exercises.iter().for_each(|e| {
-        let compilation_result = compile_exercise(e);
-
-        let compilation = match compilation_result {
+        match compilation_result {
             Ok(compiled_exercise) => {
                 println!("Exercise compiled successfully.");
                 let run_exercise = run(compiled_exercise.exercise);
                 match run_exercise {
-                    Ok(ExerciseOutput) => {
-                        println!("Exercise run successfully.");
-                    },
-                    Err(ExerciseOutput) => {
-                        println!("Exercise did not run successfully.");
+                    Ok(output) => {
+                        success!("{} executed successfully! Here's the output:", exercise);
+                        println!("{}", output.stdout)
+                    }
+                    Err(output) => {
+                        run_error!("Execution of {} failed! Here's the output:", exercise);
+                        println!("{}", output.stderr);
                     }
                 };
-            },
+            }
             Err(output) => {
-                // warn!(
-                //     "Compiling of {} failed! Please try again. Here's the output:",
-                //     exercise
-                // );
-                // println!("{}", output.stderr);
-                println!("Exercise compilation failed.");
-                // Err(())
+                compilation_error!(
+                    "Compiling of {} failed! Please correct it and try again. Here's the output:\n",
+                    exercise
+                );
+                println!("{}", output.stderr);
             }
         };
     });
+
     clean();
 }
