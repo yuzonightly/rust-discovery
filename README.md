@@ -9,8 +9,8 @@ _Tested on Linux. Does not run on Windows._
 ```bash
 cargo run -- --help
 
-cargo run -- file FILENAME # run specific exercise
-cargo run -- dir FOLDERNAME # run exercises inside a folder
+cargo run -- file FILENAME # run the specified exercise
+cargo run -- dir FOLDERNAME # run exercises under the specified folder
 cargo run -- --all # run all exercises
 ```
 
@@ -18,5 +18,5 @@ cargo run -- --all # run all exercises
 
 ```bash
 cargo run -- file variables1 # run variables1.rs
-cargo run -- dir variables # run files inside the folder variables
+cargo run -- dir variables # run files under the folder variables
 ```
