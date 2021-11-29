@@ -211,7 +211,6 @@ fn main() {
             let compilation_result = compile_exercise(exercise);
             match compilation_result {
                 Ok(compiled_exercise) => {
-                    println!("Exercise compiled successfully.");
                     let run_exercise = run(compiled_exercise.exercise);
                     match run_exercise {
                         Ok(output) => {
@@ -250,7 +249,6 @@ fn main() {
 
             match compilation_result {
                 Ok(compiled_exercise) => {
-                    println!("Exercise compiled successfully.");
                     let run_exercise = run(compiled_exercise.exercise);
                     match run_exercise {
                         Ok(output) => {
@@ -279,7 +277,6 @@ fn main() {
                 let compilation_result = compile_exercise(exercise);
                 match compilation_result {
                     Ok(compiled_exercise) => {
-                        println!("Exercise compiled successfully.");
                         let run_exercise = run(compiled_exercise.exercise);
                         match run_exercise {
                             Ok(output) => {
