@@ -1,6 +1,6 @@
 # rust-discovery
 
-Exercises from rust-lang/rustlings. `src` code also from rust-lang/rustlings, but with `a few modifications :)`.
+Exercises from rust-lang/rustlings. `src` code also from rust-lang/rustlings, but with _a few modifications :)_.
 
 _Tested on Linux. Does not run on Windows._
 
@@ -8,9 +8,8 @@ _Tested on Linux. Does not run on Windows._
 
 ```bash
 cargo run -- --help
-
-cargo run -- file FILENAME # runs the specified exercise
-cargo run -- dir FOLDERNAME # runs the exercises located under the specified folder
+cargo run -- file <file_name> # runs the specified exercise
+cargo run -- dir <folder_name> # runs the exercises located under the specified folder
 cargo run -- --all # runs all exercises
 ```
 
