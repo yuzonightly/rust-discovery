@@ -1,6 +1,6 @@
 # rust-discovery
 
-Exercises from rust-lang/rustlings. `src` code also from rust-lang/rustlings, but with _a few modifications :)_.
+Exercises from rust-lang/rustlings. `src` code also from rust-lang/rustlings, but with _a few modifications_ :).
 
 _Tested on Linux. Does not run on Windows._
 
